@@ -7,22 +7,54 @@ services:
     container_name: laravel_app
     restart: unless-stopped
     working_dir: /var/www
+    entrypoint: ["/var/www/docker/entrypoint.sh"]
     volumes:
       - ./:/var/www
       - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - laravel-storage:/var/www/storage
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - laravel-network
 
-  # Nginx Service
+  # Queue Worker Service
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    volumes:
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - laravel-storage:/var/www/storage
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    networks:
+      - laravel-network
+
+  # Nginx Service — port TIDAK diekspos ke host, hanya diakses oleh cloudflared
   nginx:
     image: nginx:alpine
     container_name: laravel_nginx
     restart: unless-stopped
-    ports:
-      - "8000:80"
+    # Port 8000:80 dihapus — nginx diakses internal oleh cloudflared
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - laravel-storage:/var/www/storage
+    depends_on:
+      - app
     networks:
       - laravel-network
 
@@ -38,24 +70,46 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
-    ports:
-      - "${DB_PORT}:3306"
+    # Port 3306 tidak diekspos ke host di production
+    # ports:
+    #   - "${DB_PORT}:3306"
     volumes:
       - laravel-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - laravel-network
-      
-  # PhpMyAdmin Service
+
+  # phpMyAdmin — akses via SSH tunnel, tidak diekspos publik
+  # Aktifkan jika diperlukan: ssh -L 8080:localhost:8080 user@vps-ip
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: laravel_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"  # Hanya bind ke localhost — tidak bisa diakses dari luar VPS
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - laravel-network
+
+  # Cloudflare Tunnel — menghubungkan nginx ke domain Cloudflare
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: laravel_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - nginx
     networks:
       - laravel-network
 
@@ -65,4 +119,6 @@ networks:
 
 volumes:
   laravel-data:
+    driver: local
+  laravel-storage:
     driver: local

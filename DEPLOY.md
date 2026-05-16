@@ -15,14 +15,64 @@ Tidak ada port yang perlu dibuka di firewall VPS. Semua traffic masuk lewat tunn
 | Kebutuhan | Keterangan |
 |-----------|------------|
 | VPS | Ubuntu 22.04 / Debian 12 minimal |
-| Docker + Docker Compose | Lihat step 1 |
+| Docker + Docker Compose | Otomatis di-install oleh script |
 | Domain | Sudah terdaftar & nameserver pointing ke Cloudflare |
 | Akun Cloudflare | Free plan sudah cukup |
+| Cloudflare Tunnel Token | Dari Zero Trust Dashboard (lihat Step 2 di bawah) |
 | Git | Untuk clone repo |
 
 ---
 
-## Step 1 — Install Docker di VPS
+## Quick Deploy (Script Otomatis)
+
+Deploy lengkap dengan satu perintah:
+
+```bash
+git clone https://github.com/SeptiawanAjiP/dewakoding-project-management project-management
+cd project-management
+bash deploy.sh
+```
+
+Script akan otomatis:
+1. Cek & install Docker, Node.js jika belum ada
+2. Konfigurasi `.env` production (interaktif — akan menanyakan domain, password DB, dan Cloudflare Tunnel Token)
+3. Build frontend assets (`npm install && npm run build`)
+4. Build & jalankan **semua** container Docker: `app`, `queue`, `nginx`, `db`, `phpmyadmin`, **`cloudflared`**
+5. Setup Laravel (Filament Shield + buat user admin)
+6. Verifikasi deployment
+
+### Opsi Script
+
+| Flag | Keterangan |
+|------|------------|
+| `--skip-frontend` | Lewati npm install & build (untuk update tanpa perubahan frontend) |
+| `--force-build` | Paksa rebuild frontend assets |
+| `--help` | Tampilkan bantuan |
+
+### Contoh Penggunaan
+
+```bash
+# Deploy pertama kali
+bash deploy.sh
+
+# Update aplikasi (tanpa rebuild frontend)
+git pull
+bash deploy.sh --skip-frontend
+
+# Force rebuild frontend setelah git pull
+git pull
+bash deploy.sh --force-build
+```
+
+> **Catatan:** Script bersifat idempotent — aman dijalankan ulang. Jika `.env` sudah ada, script akan bertanya apakah ingin menggunakan yang lama atau membuat baru.
+
+---
+
+## Manual Deploy Steps
+
+Jika ingin deploy secara manual, ikuti langkah-langkah berikut:
+
+### Step 1 — Install Docker di VPS
 
 ```bash
 # Login ke VPS via SSH
@@ -40,7 +90,7 @@ docker compose version
 
 ---
 
-## Step 2 — Buat Cloudflare Tunnel
+### Step 2 — Buat Cloudflare Tunnel
 
 ### 2a. Buat Tunnel di Cloudflare Dashboard
 
@@ -71,7 +121,7 @@ Masih di wizard pembuatan tunnel:
 
 ---
 
-## Step 3 — Clone Repo di VPS
+### Step 3 — Clone Repo di VPS
 
 ```bash
 # Di VPS
@@ -82,7 +132,7 @@ cd project-management
 
 ---
 
-## Step 4 — Konfigurasi Environment
+### Step 4 — Konfigurasi Environment
 
 ```bash
 # Salin template .env production
@@ -103,7 +153,7 @@ CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoiXXX   # Token dari Step 2a
 
 ---
 
-## Step 5 — Build & Jalankan
+### Step 5 — Build & Jalankan
 
 ```bash
 # Build frontend assets (wajib dilakukan sekali sebelum docker up)
@@ -137,7 +187,7 @@ laravel_phpmyadmin     running
 
 ---
 
-## Step 6 — Setup Awal Laravel
+### Step 6 — Setup Awal Laravel
 
 ```bash
 # Cek log bootstrap (migrate, cache, dll)
@@ -154,7 +204,7 @@ docker compose exec app php artisan make:filament-user
 
 ---
 
-## Step 7 — Verifikasi
+### Step 7 — Verifikasi
 
 Buka browser → `https://pm.yourdomain.com/admin`
 
@@ -218,11 +268,13 @@ cd /opt/project-management
 
 git pull origin main
 
-# Build ulang assets jika ada perubahan frontend
-npm install
-npm run build
+# Cara cepat (menggunakan deploy script):
+bash deploy.sh --skip-frontend
+# Atau jika ada perubahan frontend:
+bash deploy.sh --force-build
 
-# Rebuild image dan restart (zero-downtime opsional)
+# Atau manual:
+npm install && npm run build
 docker compose build app queue
 docker compose up -d --no-deps --build app queue
 

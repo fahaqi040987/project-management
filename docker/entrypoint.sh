@@ -16,6 +16,11 @@ if [ ! -d "/var/www/vendor" ]; then
     composer install --no-dev --optimize-autoloader --no-interaction
 fi
 
+# Publish Filament assets agar Blade components tersedia
+echo "==> [entrypoint] Publishing Filament assets..."
+php artisan vendor:publish --tag=filament-assets --ansi --force 2>/dev/null || true
+php artisan filament:upgrade 2>/dev/null || true
+
 # Build frontend assets jika belum ada (opsional — lebih baik di-build sebelum deploy)
 # npm run build
 

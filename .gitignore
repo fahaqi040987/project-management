@@ -26,3 +26,4 @@ yarn-error.log
 frankenphp
 frankenphp-worker.php
 .agent/
+.claude/

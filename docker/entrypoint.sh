@@ -34,11 +34,12 @@ if [ ! -L "/var/www/public/storage" ]; then
     php artisan storage:link
 fi
 
-# Cache config, route, dan view untuk performance
+# Cache config dan route untuk performance
+# Note: view:cache dilewati karena Filament mendaftarkan Blade components
+# secara dinamis yang bisa gagal di-compile saat cache build
 echo "==> [entrypoint] Optimizing application..."
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 php artisan event:cache
 
 echo "==> [entrypoint] Bootstrap complete. Starting PHP-FPM..."

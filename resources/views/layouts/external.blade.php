@@ -59,7 +59,7 @@
     <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="max-w-7xl mx-auto py-6 px-6">
             <div class="text-center text-sm text-gray-500">
-                <p>&copy; {{ date('Y') }} Dewakoding Project Management. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} Btn Nexa Project Management. All rights reserved.</p>
             </div>
         </div>
     </footer>

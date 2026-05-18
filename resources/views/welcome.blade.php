@@ -31,7 +31,7 @@
         <div class="min-h-screen flex flex-col items-center">
             <header class="w-full py-6 px-6 sm:px-10 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
-                    <img src="{{ asset('logo-btn-1.png') }}" alt="Btn Nexa" class="h-10 w-auto">
+                    <img src="{{ asset('logo-btn-1.png') }}" alt="Btn Nexa" class="w-auto" style="height: 9rem;">
                 </div>
                 
                 @if (Route::has('login'))

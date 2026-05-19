@@ -52,7 +52,7 @@ class TicketsPerProjectChart extends ChartWidget
             
         if (!$isSuperAdmin) {
             $projectsQuery->whereHas('members', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('users.id', $user->id);
             });
         }
         

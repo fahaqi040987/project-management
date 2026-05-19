@@ -30,7 +30,7 @@ class RecentActivityTable extends BaseWidget
             return true;
         }
 
-        return $user?->can(static::getPermissionName()) ?? false;
+        return $user?->can('widget_' . class_basename(static::class)) ?? false;
     }
 
     protected static ?string $heading = 'Recent Activities';

@@ -24,7 +24,7 @@ class MonthlyTicketTrendChart extends ChartWidget
             return true;
         }
 
-        return $user?->can(static::getPermissionName()) ?? false;
+        return $user?->can('widget_' . class_basename(static::class)) ?? false;
     }
 
     protected ?string $heading = 'Monthly Ticket Creation Trend';

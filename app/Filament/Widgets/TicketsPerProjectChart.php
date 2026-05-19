@@ -24,7 +24,7 @@ class TicketsPerProjectChart extends ChartWidget
             return true;
         }
 
-        return $user?->can(static::getPermissionName()) ?? false;
+        return $user?->can('widget_' . class_basename(static::class)) ?? false;
     }
     
     protected ?string $heading = 'Number of tickets per project';

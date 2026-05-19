@@ -50,7 +50,7 @@ class RecentActivityTable extends BaseWidget
                     ->with(['ticket.project', 'user', 'status'])
                     ->when(!auth()->user()->hasRole('super_admin'), function ($query) {
                         $query->whereHas('ticket.project.members', function ($subQuery) {
-                            $subQuery->where('user_id', auth()->id());
+                            $subQuery->where('users.id', auth()->id());
                         });
                     })
                     ->latest()

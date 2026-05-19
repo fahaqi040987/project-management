@@ -48,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
                         ->toString(),
                     is_subclass_of($entity, Widget::class) => Str::of('widget_')
                         ->append(class_basename($entity))
+                        ->toString(),
+                    default => Str::of('permission_')
+                        ->append(class_basename($entity))
                         ->toString()
                     };
             });

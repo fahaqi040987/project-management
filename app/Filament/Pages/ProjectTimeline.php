@@ -44,7 +44,7 @@ class ProjectTimeline extends Page
 
         if (!$userIsSuperAdmin) {
             $query->whereHas('members', function ($query) {
-                $query->where('user_id', auth()->id());
+                $query->where('users.id', auth()->id());
             });
         }
         
@@ -121,7 +121,7 @@ class ProjectTimeline extends Page
 
         if (!$userIsSuperAdmin) {
             $allQuery->whereHas('members', function ($query) {
-                $query->where('user_id', auth()->id());
+                $query->where('users.id', auth()->id());
             });
         }
         

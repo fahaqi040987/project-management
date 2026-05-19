@@ -33,7 +33,7 @@ class ImportTicketsAction
                             ->options(function () {
                                 return Project::query()
                                     ->whereHas('members', function ($query) {
-                                        $query->where('user_id', auth()->id());
+                                        $query->where('users.id', auth()->id());
                                     })
                                     ->orWhere(function ($query) {
                                         if (auth()->user()->hasRole('super_admin')) {

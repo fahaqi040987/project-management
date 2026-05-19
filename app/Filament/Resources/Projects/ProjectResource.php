@@ -225,7 +225,7 @@ class ProjectResource extends Resource
 
         if (!$userIsSuperAdmin) {
             $query->whereHas('members', function (Builder $query) {
-                $query->where('user_id', auth()->id());
+                $query->where('users.id', auth()->id());
             });
         }
 

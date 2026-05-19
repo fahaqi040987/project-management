@@ -50,7 +50,7 @@ class MonthlyTicketTrendChart extends ChartWidget
 
         if (!$isSuperAdmin) {
             $earliestTicketQuery->whereHas('project.members', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('users.id', $user->id);
             });
         }
 
@@ -100,7 +100,7 @@ class MonthlyTicketTrendChart extends ChartWidget
 
         if (!$isSuperAdmin) {
             $ticketsQuery->whereHas('project.members', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('users.id', $user->id);
             });
         }
 

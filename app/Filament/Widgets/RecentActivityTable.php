@@ -18,6 +18,21 @@ class RecentActivityTable extends BaseWidget
 {
     use HasWidgetShield;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        $isSuperAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) || 
+            (isset($user->role) && $user->role === 'super_admin')
+        );
+
+        if ($isSuperAdmin) {
+            return true;
+        }
+
+        return $user?->can(static::getPermissionName()) ?? false;
+    }
+
     protected static ?string $heading = 'Recent Activities';
     
     protected int | string | array $columnSpan = [

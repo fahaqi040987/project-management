@@ -12,6 +12,21 @@ use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 class ProjectTimeline extends Widget
 {
     use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        $isSuperAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) || 
+            (isset($user->role) && $user->role === 'super_admin')
+        );
+
+        if ($isSuperAdmin) {
+            return true;
+        }
+
+        return $user?->can(static::getPermissionName()) ?? false;
+    }
     protected ?string $heading = 'Project Timeline';
     
     protected string $view = 'filament.widgets.project-timeline';

@@ -15,6 +15,21 @@ class StatsOverview extends BaseWidget
 {
     use HasWidgetShield;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        $isSuperAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) || 
+            (isset($user->role) && $user->role === 'super_admin')
+        );
+
+        if ($isSuperAdmin) {
+            return true;
+        }
+
+        return $user?->can(static::getPermissionName()) ?? false;
+    }
+
     protected ?string $pollingInterval = '30s';
 
     protected ?string $heading = 'Overview';

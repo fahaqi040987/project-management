@@ -12,6 +12,21 @@ class MonthlyTicketTrendChart extends ChartWidget
 {
     use HasWidgetShield;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        $isSuperAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) || 
+            (isset($user->role) && $user->role === 'super_admin')
+        );
+
+        if ($isSuperAdmin) {
+            return true;
+        }
+
+        return $user?->can(static::getPermissionName()) ?? false;
+    }
+
     protected ?string $heading = 'Monthly Ticket Creation Trend';
 
     protected static ?int $sort = 4;

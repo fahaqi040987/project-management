@@ -25,7 +25,7 @@ class ProjectTimeline extends Widget
             return true;
         }
 
-        return $user?->can(static::getPermissionName()) ?? false;
+        return $user?->can('widget_' . class_basename(static::class)) ?? false;
     }
     protected ?string $heading = 'Project Timeline';
     

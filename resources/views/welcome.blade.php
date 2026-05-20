@@ -89,10 +89,13 @@
                     </div>
 
                     <div class="flex flex-col items-center">
-                        <a href="/admin" class="gradient-background text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-lg">
+                        <a href="/admin" class="gradient-background text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-lg mb-4">
                             Access Admin Panel
                         </a>
-                        <p class="mt-4 text-sm text-gray-500">Manage your projects and team from our powerful administration dashboard</p>
+                        <a href="{{ route('submit-ticket') }}" class="bg-white text-blue-600 border border-blue-600 font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-50 transition-all duration-300 text-lg">
+                            Submit a Ticket
+                        </a>
+                        <p class="mt-4 text-sm text-gray-500 text-center">Manage your projects and team from our powerful administration dashboard,<br>or submit a new request directly.</p>
                     </div>
                 </div>
             </main>

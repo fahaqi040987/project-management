@@ -17,7 +17,8 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Grid;
 use Filament\Notifications\Notification;
-use Filament\Forms\Get;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 
 class SubmitTicket extends Component implements HasForms
 {
@@ -31,9 +32,9 @@ class SubmitTicket extends Component implements HasForms
         $this->form->fill();
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                 Section::make('Submit a New Ticket')
                     ->description('Please provide the details of your request or issue below.')

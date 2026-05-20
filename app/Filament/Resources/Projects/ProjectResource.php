@@ -20,6 +20,7 @@ use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\Projects\RelationManagers\TicketStatusesRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\MembersRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\EpicsRelationManager;
+use App\Filament\Resources\Projects\RelationManagers\TicketCategoriesRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\TicketsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\Projects\Pages\ListProjects;
@@ -198,6 +199,7 @@ class ProjectResource extends Resource
             TicketStatusesRelationManager::class,
             MembersRelationManager::class,
             EpicsRelationManager::class,
+            TicketCategoriesRelationManager::class,
             TicketsRelationManager::class,
             NotesRelationManager::class,
         ];

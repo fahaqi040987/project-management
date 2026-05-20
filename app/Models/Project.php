@@ -71,6 +71,11 @@ class Project extends Model
         return $this->hasMany(Epic::class);
     }
 
+    public function ticketCategories(): HasMany
+    {
+        return $this->hasMany(TicketCategory::class);
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(ProjectNote::class);

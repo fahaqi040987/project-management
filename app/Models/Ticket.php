@@ -23,6 +23,7 @@ class Ticket extends Model
         'due_date',
         'uuid',
         'epic_id',
+        'ticket_category_id',
         'created_by',
     ];
 
@@ -92,6 +93,11 @@ class Ticket extends Model
     public function epic(): BelongsTo
     {
         return $this->belongsTo(Epic::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(TicketCategory::class, 'ticket_category_id');
     }
 
     public function priority(): BelongsTo

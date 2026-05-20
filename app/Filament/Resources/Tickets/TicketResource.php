@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Tickets;
 
 use App\Models\Epic;
+use App\Models\TicketCategory;
 use App\Models\Ticket;
 use App\Models\Project;
 use Filament\Tables\Table;
@@ -124,6 +125,24 @@ class TicketResource extends Resource
                         }
 
                         return Epic::where('project_id', $projectId)
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->hidden(fn(Get $get): bool => !$get('project_id')),
+
+                Select::make('ticket_category_id')
+                    ->label('Category')
+                    ->options(function (Get $get) {
+                        $projectId = $get('project_id');
+
+                        if (!$projectId) {
+                            return [];
+                        }
+
+                        return TicketCategory::where('project_id', $projectId)
                             ->pluck('name', 'id')
                             ->toArray();
                     })
@@ -268,6 +287,13 @@ class TicketResource extends Resource
                     ->default('—')
                     ->placeholder('No Epic'),
 
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->sortable()
+                    ->searchable()
+                    ->default('—')
+                    ->placeholder('No Category'),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -312,6 +338,22 @@ class TicketResource extends Resource
                         }
 
                         return Epic::where('project_id', $projectId)
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('ticket_category_id')
+                    ->label('Category')
+                    ->options(function () {
+                        $projectId = request()->input('tableFilters.project_id');
+
+                        if (!$projectId) {
+                            return [];
+                        }
+
+                        return TicketCategory::where('project_id', $projectId)
                             ->pluck('name', 'id')
                             ->toArray();
                     })

@@ -20,35 +20,16 @@ services:
     networks:
       - laravel-network
 
-  # Queue Worker Service
-  queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: laravel_queue
-    restart: unless-stopped
-    working_dir: /var/www
-    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
-    volumes:
-      - ./:/var/www
-      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
-      - laravel-storage:/var/www/storage
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-      app:
-        condition: service_started
-    networks:
-      - laravel-network
+
 
   # Nginx Service — port TIDAK diekspos ke host, hanya diakses oleh cloudflared
   nginx:
     image: nginx:alpine
     container_name: laravel_nginx
     restart: unless-stopped
-    # Port 8000:80 dihapus — nginx diakses internal oleh cloudflared
+    # Port 8000:80 diekspos untuk testing local
+    ports:
+      - "8000:80"
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
@@ -58,9 +39,9 @@ services:
     networks:
       - laravel-network
 
-  # MySQL Service
+  # MariaDB Service
   db:
-    image: mysql:8.0
+    image: mariadb:11
     container_name: laravel_db
     restart: unless-stopped
     environment:
@@ -69,14 +50,15 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_USER: ${DB_USERNAME}
       SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+      SERVICE_NAME: mariadb
     # Port 3306 tidak diekspos ke host di production
     # ports:
     #   - "${DB_PORT}:3306"
     volumes:
       - laravel-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,18 +82,18 @@ services:
     networks:
       - laravel-network
 
-  # Cloudflare Tunnel — menghubungkan nginx ke domain Cloudflare
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: laravel_cloudflared
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on:
-      - nginx
-    networks:
-      - laravel-network
+  # Cloudflare Tunnel (dinonaktifkan untuk local testing)
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: laravel_cloudflared
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   depends_on:
+  #     - nginx
+  #   networks:
+  #     - laravel-network
 
 networks:
   laravel-network:

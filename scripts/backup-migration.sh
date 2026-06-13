@@ -160,3 +160,34 @@ else
     warn "Skipping database dump (--skip-database)"
     DB_SIZE=0
 fi
+
+# ── Step 4: Copy Storage Files ─────────────────────────────────────────
+if [ "$SKIP_STORAGE" = "false" ]; then
+    step "4/8" "Copying storage files..."
+
+    STORAGE_SOURCE="$PROJECT_ROOT/storage"
+
+    if [ ! -d "$STORAGE_SOURCE" ]; then
+        warn "Storage directory not found: $STORAGE_SOURCE"
+        STORAGE_SIZE=0
+    else
+        # Copy storage subdirectories
+        for subdir in app framework logs; do
+            if [ -d "$STORAGE_SOURCE/$subdir" ]; then
+                info "Copying storage/$subdir..."
+                cp -r "$STORAGE_SOURCE/$subdir" "$TEMP_DIR/storage/"
+
+                subdir_size=$(du -sb "$TEMP_DIR/storage/$subdir" 2>/dev/null | cut -f1)
+                info "  $(format_bytes $subdir_size)"
+            else
+                info "Skipping storage/$subdir (not found)"
+            fi
+        done
+
+        STORAGE_SIZE=$(du -sb "$TEMP_DIR/storage" 2>/dev/null | cut -f1)
+        success "Storage files copied: $(format_bytes $STORAGE_SIZE)"
+    fi
+else
+    warn "Skipping storage files (--skip-storage)"
+    STORAGE_SIZE=0
+fi

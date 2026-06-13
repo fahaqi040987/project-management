@@ -1,0 +1,12 @@
+{
+  "backup_date": "{{BACKUP_DATE}}",
+  "version": "1.0.0",
+  "database_name": "{{DB_NAME}}",
+  "database_size_bytes": {{DB_SIZE}},
+  "storage_size_bytes": {{STORAGE_SIZE}},
+  "total_size_bytes": {{TOTAL_SIZE}},
+  "checksum": "{{CHECKSUM}}",
+  "hostname": "{{HOSTNAME}}",
+  "app_url": "{{APP_URL}}",
+  "compressed_file": "{{ARCHIVE_NAME}}"
+}

@@ -220,3 +220,42 @@ if [ -f "$SCRIPT_DIR/templates/README.txt" ]; then
 else
     warn "README template not found, skipping"
 fi
+
+# ── Step 6: Generate Metadata ───────────────────────────────────────────
+step "6/8" "Generating metadata..."
+
+TOTAL_SIZE=$((DB_SIZE + STORAGE_SIZE))
+BACKUP_DATE=$(date -Iseconds)
+HOSTNAME=$(hostname)
+APP_URL=$(grep "^APP_URL=" .env | cut -d'=' -f2)
+
+if [ -f "$SCRIPT_DIR/templates/metadata.json.template" ]; then
+    # Replace placeholders in template (use | delimiter to avoid issues with slashes)
+    sed -e "s|{{BACKUP_DATE}}|$BACKUP_DATE|g" \
+        -e "s|{{DB_NAME}}|$DB_NAME|g" \
+        -e "s|{{DB_SIZE}}|$DB_SIZE|g" \
+        -e "s|{{STORAGE_SIZE}}|$STORAGE_SIZE|g" \
+        -e "s|{{TOTAL_SIZE}}|$TOTAL_SIZE|g" \
+        -e "s|{{HOSTNAME}}|$HOSTNAME|g" \
+        -e "s|{{APP_URL}}|$APP_URL|g" \
+        -e "s|{{ARCHIVE_NAME}}|$BACKUP_NAME|g" \
+        "$SCRIPT_DIR/templates/metadata.json.template" > "$METADATA_FILE"
+
+    # Mark checksum for calculation after compression
+    sed -i 's/"checksum": "",/"checksum": "sha256:CALCULATING",/' "$METADATA_FILE"
+
+    success "Metadata generated"
+else
+    warn "Metadata template not found, creating minimal metadata"
+    cat > "$METADATA_FILE" <<EOF
+{
+  "backup_date": "$BACKUP_DATE",
+  "database_name": "$DB_NAME",
+  "database_size_bytes": $DB_SIZE,
+  "storage_size_bytes": $STORAGE_SIZE,
+  "total_size_bytes": $TOTAL_SIZE,
+  "hostname": "$HOSTNAME",
+  "app_url": "$APP_URL"
+}
+EOF
+fi

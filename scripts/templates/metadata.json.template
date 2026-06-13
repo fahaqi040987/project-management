@@ -5,7 +5,7 @@
   "database_size_bytes": {{DB_SIZE}},
   "storage_size_bytes": {{STORAGE_SIZE}},
   "total_size_bytes": {{TOTAL_SIZE}},
-  "checksum": "{{CHECKSUM}}",
+  "checksum": "",
   "hostname": "{{HOSTNAME}}",
   "app_url": "{{APP_URL}}",
   "compressed_file": "{{ARCHIVE_NAME}}"

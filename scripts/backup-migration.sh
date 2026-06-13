@@ -241,9 +241,6 @@ if [ -f "$SCRIPT_DIR/templates/metadata.json.template" ]; then
         -e "s|{{ARCHIVE_NAME}}|$BACKUP_NAME|g" \
         "$SCRIPT_DIR/templates/metadata.json.template" > "$METADATA_FILE"
 
-    # Mark checksum for calculation after compression
-    sed -i 's/"checksum": "",/"checksum": "sha256:CALCULATING",/' "$METADATA_FILE"
-
     success "Metadata generated"
 else
     warn "Metadata template not found, creating minimal metadata"
@@ -283,18 +280,8 @@ fi
 # Get final archive size
 ARCHIVE_SIZE=$(wc -c < "$ARCHIVE_PATH")
 
-# Calculate checksum
+# Calculate checksum for display (not stored in metadata to avoid circular dependency)
 CHECKSUM=$(calculate_checksum "$ARCHIVE_PATH")
-
-# Update metadata file with checksum and re-create archive
-sed -i 's/"checksum": "sha256:CALCULATING",/"checksum": "sha256:'"$CHECKSUM"'",/' "$METADATA_FILE"
-
-# Re-create archive with updated metadata
-if ! tar -czf "$ARCHIVE_PATH" -C "$TEMP_DIR" . 2>/dev/null; then
-    error "Failed to update archive with checksum"
-    cleanup_temp "$TEMP_DIR"
-    exit 1
-fi
 
 success "Archive created: $BACKUP_NAME"
 success "Archive size: $(format_bytes $ARCHIVE_SIZE)"

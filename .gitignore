@@ -27,3 +27,4 @@ frankenphp
 frankenphp-worker.php
 .agent/
 .claude/
+backups/*.tar.gz

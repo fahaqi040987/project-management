@@ -24,6 +24,10 @@ php artisan filament:upgrade 2>/dev/null || true
 # Build frontend assets jika belum ada (opsional — lebih baik di-build sebelum deploy)
 # npm run build
 
+# Bersihkan cache sebelum migrasi agar membaca .env terbaru
+echo "==> [entrypoint] Clearing configuration cache..."
+php artisan config:clear
+
 # Jalankan migrasi (--force agar bisa berjalan di production env)
 echo "==> [entrypoint] Running migrations..."
 php artisan migrate --force
@@ -44,5 +48,5 @@ php artisan event:cache
 
 echo "==> [entrypoint] Bootstrap complete. Starting PHP-FPM..."
 
-# Jalankan php-fpm
-exec php-fpm
+# Jalankan supervisor (php-fpm dan queue worker)
+exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf

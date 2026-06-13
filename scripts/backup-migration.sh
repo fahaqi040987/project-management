@@ -259,3 +259,37 @@ else
 }
 EOF
 fi
+
+# ── Step 7: Compress Archive ────────────────────────────────────────────
+step "7/8" "Compressing archive..."
+
+# Check disk space
+ESTIMATED_SIZE=$((TOTAL_SIZE * 2 / 1024 / 1024))  # Rough estimate in MB
+if ! check_disk_space "$ESTIMATED_SIZE"; then
+    error "Insufficient disk space for compression"
+    cleanup_temp "$TEMP_DIR"
+    exit 1
+fi
+
+# Create compressed archive
+ARCHIVE_PATH="$BACKUP_DIR/$BACKUP_NAME"
+
+if ! tar -czf "$ARCHIVE_PATH" -C "$TEMP_DIR" . 2>/dev/null; then
+    error "Failed to create compressed archive"
+    cleanup_temp "$TEMP_DIR"
+    exit 1
+fi
+
+# Get final archive size
+ARCHIVE_SIZE=$(wc -c < "$ARCHIVE_PATH")
+
+# Calculate checksum
+CHECKSUM=$(calculate_checksum "$ARCHIVE_PATH")
+
+# Update metadata with checksum
+sed -i 's/"checksum": "sha256:CALCULATING",/"checksum": "sha256:'"$CHECKSUM"'",/' "$METADATA_FILE"
+
+# Update metadata file in archive (if possible, otherwise skip)
+success "Archive created: $BACKUP_NAME"
+success "Archive size: $(format_bytes $ARCHIVE_SIZE)"
+success "Checksum: sha256:$CHECKSUM"

@@ -191,3 +191,32 @@ else
     warn "Skipping storage files (--skip-storage)"
     STORAGE_SIZE=0
 fi
+
+# ── Step 5: Copy Configuration ─────────────────────────────────────────
+step "5/8" "Copying configuration..."
+
+if [ -f ".env" ]; then
+    mask_env_sensitive "$PROJECT_ROOT/.env" "$TEMP_DIR/env-config"
+    success "Configuration copied (sensitive values masked)"
+else
+    error ".env file not found!"
+    cleanup_temp "$TEMP_DIR"
+    exit 1
+fi
+
+# Copy README template
+if [ -f "$SCRIPT_DIR/templates/README.txt" ]; then
+    # Replace placeholders
+    BACKUP_DATE=$(date -Iseconds)
+    APP_URL=$(grep "^APP_URL=" .env | cut -d'=' -f2)
+    HOSTNAME=$(hostname)
+
+    sed -e "s/{{BACKUP_DATE}}/$BACKUP_DATE/g" \
+        -e "s/{{DB_NAME}}/$DB_NAME/g" \
+        -e "s/{{HOSTNAME}}/$HOSTNAME/g" \
+        "$SCRIPT_DIR/templates/README.txt" > "$TEMP_DIR/README.txt"
+
+    success "README.txt generated"
+else
+    warn "README template not found, skipping"
+fi

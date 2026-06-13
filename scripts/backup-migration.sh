@@ -286,10 +286,45 @@ ARCHIVE_SIZE=$(wc -c < "$ARCHIVE_PATH")
 # Calculate checksum
 CHECKSUM=$(calculate_checksum "$ARCHIVE_PATH")
 
-# Update metadata with checksum
+# Update metadata file with checksum and re-create archive
 sed -i 's/"checksum": "sha256:CALCULATING",/"checksum": "sha256:'"$CHECKSUM"'",/' "$METADATA_FILE"
 
-# Update metadata file in archive (if possible, otherwise skip)
+# Re-create archive with updated metadata
+if ! tar -czf "$ARCHIVE_PATH" -C "$TEMP_DIR" . 2>/dev/null; then
+    error "Failed to update archive with checksum"
+    cleanup_temp "$TEMP_DIR"
+    exit 1
+fi
+
 success "Archive created: $BACKUP_NAME"
 success "Archive size: $(format_bytes $ARCHIVE_SIZE)"
 success "Checksum: sha256:$CHECKSUM"
+
+# ── Step 8: Cleanup and Report ───────────────────────────────────────────
+step "8/8" "Finalizing backup..."
+
+# Cleanup temp directory
+cleanup_temp "$TEMP_DIR"
+
+# Final report
+if [ "$QUIET" = "false" ]; then
+    echo ""
+    echo "════════════════════════════════════════════════════════════════"
+    success "BACKUP COMPLETE!"
+    echo "════════════════════════════════════════════════════════════════"
+    echo ""
+    info "Archive: $ARCHIVE_PATH"
+    info "Size: $(format_bytes $ARCHIVE_SIZE)"
+    info "Checksum: $CHECKSUM"
+    echo ""
+    info "Database: $DB_NAME ($(format_bytes $DB_SIZE))"
+    info "Storage: $(format_bytes $STORAGE_SIZE)"
+    echo ""
+    info "Transfer to new server:"
+    echo "  scp $ARCHIVE_PATH user@new-server:/tmp/"
+    echo ""
+    info "Restore on new server:"
+    echo "  bash scripts/restore-migration.sh /tmp/$BACKUP_NAME"
+    echo ""
+    echo "════════════════════════════════════════════════════════════════"
+fi

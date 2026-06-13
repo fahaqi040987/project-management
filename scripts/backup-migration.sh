@@ -110,3 +110,53 @@ mkdir -p "$BACKUP_DIR"
 success "Backup directory: $BACKUP_DIR"
 
 info "Prerequisites check complete"
+
+# ── Step 2: Prepare Temporary Directory ────────────────────────────────
+step "2/8" "Preparing temporary directory..."
+
+mkdir -p "$TEMP_DIR/database"
+mkdir -p "$TEMP_DIR/storage"
+success "Temp directory: $TEMP_DIR"
+
+# ── Step 3: Database Dump ───────────────────────────────────────────────
+if [ "$SKIP_DATABASE" = "false" ]; then
+    step "3/8" "Dumping database..."
+
+    DB_NAME=$(get_db_name)
+    DB_PASSWORD=$(get_db_password)
+
+    if [ -z "$DB_NAME" ]; then
+        error "Cannot determine database name from .env"
+        cleanup_temp "$TEMP_DIR"
+        exit 1
+    fi
+
+    info "Database: $DB_NAME"
+
+    # Dump database
+    if ! docker exec "$DB_CONTAINER" mariadb-dump \
+        -u root \
+        -p"${DB_PASSWORD}" \
+        --single-transaction \
+        --quick \
+        --lock-tables=false \
+        "$DB_NAME" > "$TEMP_DIR/database/dump.sql" 2>/dev/null; then
+
+        error "Database dump failed. Check DB credentials and container status."
+        cleanup_temp "$TEMP_DIR"
+        exit 1
+    fi
+
+    # Verify dump is not empty
+    if [ ! -s "$TEMP_DIR/database/dump.sql" ]; then
+        error "Database dump is empty!"
+        cleanup_temp "$TEMP_DIR"
+        exit 1
+    fi
+
+    DB_SIZE=$(wc -c < "$TEMP_DIR/database/dump.sql")
+    success "Database dumped: $(format_bytes $DB_SIZE)"
+else
+    warn "Skipping database dump (--skip-database)"
+    DB_SIZE=0
+fi
